@@ -1,0 +1,12 @@
+{% extends 'main/base.html' %}
+{% block title %}Payment Successful{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="card shadow-sm p-4 mx-auto" style="max-width:720px;">
+    <h1 class="text-success">🎉 Payment Successful</h1>
+    <p class="lead">Thank you for your purchase! Your course is now unlocked — head to <a href="{% url 'my_courses' %}">My Courses</a> to start learning.</p>
+    <a href="{% url 'my_courses' %}" class="btn btn-primary mt-3">Go to My Courses</a>
+  </div>
+</div>
+{% endblock %}

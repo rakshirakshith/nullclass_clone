@@ -1,0 +1,120 @@
+{% extends 'main/base.html' %}
+{% block title %}{{ course.title }} - Nullclass Clone{% endblock %}
+
+{% block content %}
+<div class="row my-4">
+  <div class="col-12 col-lg-8">
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title">{{ course.title }}</h2>
+        <p class="text-muted">{{ course.short_desc }}</p>
+        <p>{{ course.description }}</p>
+      </div>
+    </div>
+
+    <h4>Lessons</h4>
+    {% for l in lessons %}
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6>{{ l.order }}. {{ l.title }}</h6>
+          {% if l.embed_url %}
+            <div class="ratio ratio-16x9 my-2">
+              <iframe src="{{ l.embed_url }}" title="{{ l.title }}" allowfullscreen></iframe>
+            </div>
+          {% elif l.video_url %}
+            <a href="{{ l.video_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">Open lesson</a>
+          {% else %}
+            <span class="text-muted">No video available</span>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="alert alert-warning">No lessons added yet.</div>
+    {% endfor %}
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="card shadow-sm">
+      <img src="{{ course.thumbnail }}" alt="{{ course.title }}" class="card-img-top" style="height:180px;object-fit:cover;">
+      <div class="card-body">
+        <h5 class="card-title">₹{{ course.price }}</h5>
+        <p class="text-muted small mb-3">One-time purchase</p>
+
+        <!-- BUY button: Razorpay integrated -->
+<form id="buy-form" method="post" action="#">
+  {% csrf_token %}
+  <button type="button" class="btn btn-primary w-100" id="buy-now">Buy Now</button>
+</form>
+
+<!-- Razorpay checkout script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const buyBtn = document.getElementById("buy-now");
+  if (buyBtn) {
+    buyBtn.addEventListener("click", function () {
+      fetch(`/checkout/{{ course.slug }}/`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.error) {
+            window.location.href = "/payment/failed/";
+            return;
+          }
+
+          const options = {
+            key: data.key,
+            amount: data.amount,
+            currency: "INR",
+            name: "Nullclass Clone",
+            description: data.course_title,
+            order_id: data.order_id,
+            handler: function (response) {
+              const formData = new FormData();
+              formData.append("razorpay_payment_id", response.razorpay_payment_id);
+              formData.append("razorpay_order_id", response.razorpay_order_id);
+              formData.append("razorpay_signature", response.razorpay_signature);
+              formData.append("order_db_id", data.order_db_id);
+
+              fetch("/verify-payment/", {
+                method: "POST",
+                body: formData,
+              })
+                .then((r) => r.json())
+                .then((res) => {
+                  if (res.status === "success") {
+                    // redirect to nice success page
+                    window.location.href = "/payment/success/";
+                  } else {
+                    // redirect to failure page
+                    window.location.href = "/payment/failed/";
+                  }
+                })
+                .catch((err) => {
+                  console.error(err);
+                  window.location.href = "/payment/failed/";
+                });
+            },
+            theme: { color: "#3399cc" },
+          };
+
+          const rzp = new Razorpay(options);
+          rzp.open();
+        })
+        .catch((err) => {
+          console.error(err);
+          window.location.href = "/payment/failed/";
+        });
+    });
+  }
+});
+</script>
+
+
+
+        <hr>
+        <p class="small text-muted mb-0">You will get access to all lessons after purchase.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

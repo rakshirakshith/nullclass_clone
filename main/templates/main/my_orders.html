@@ -1,0 +1,38 @@
+{% extends 'main/base.html' %}
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h2 class="mb-4">My Orders</h2>
+  {% if orders %}
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Amount (₹)</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+          <tr>
+            <td>{{ o.course.title }}</td>
+            <td>{{ o.amount|floatformat:2 }}</td>
+            <td>
+              {% if o.paid %}
+                <span class="badge bg-success">Paid</span>
+              {% else %}
+                <span class="badge bg-danger">Failed</span>
+              {% endif %}
+            </td>
+            <td>{{ o.created_at|date:"M d, Y H:i" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info">No orders found yet.</div>
+  {% endif %}
+</div>
+{% endblock %}
